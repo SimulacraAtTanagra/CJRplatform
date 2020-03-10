@@ -7,8 +7,7 @@ Created on Wed Jan 22 08:57:38 2020
 from emailautosend import mailthis
 from emailautosend import getemail
 import os
-import xlwings
-import openpyxl
+from cleansheet import *
 import pandas as pd
 import re
 from datetime import datetime 
@@ -78,11 +77,11 @@ hrisgroup = "'lolsson@york.cuny.edu';'pcaceres901@york.cuny.edu';'ajackson1@york
 #mailthis(hrisgroup,'sayers@york.cuny.edu',expired_end_dates, 'Expired end date records (test)')
 
 paf_empls = df[df.empl_stat_cd.isin(['A','S','R','L'])][['empl_id','person_nm','home_addr1', 'home_addr2', 'home_city','home_state','home_postal','jobcode_ld','labor_job_ld','budget_line_nbr','pos_cd']]
-paf_empls.to_excel('Y:\PAF_report.xlsx')
+cleansheet(paf_empls,'Y:\PAF_report.xlsx')
 
 active_emps = df[df['empl_stat_cd']=="A"][['empl_id','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld']]
-active_emps.to_excel('Z:\Registrar\Active_Employee_report.xlsx')
-active_emps.to_excel('Z:\Security\Active_Employee_report.xlsx')
+cleansheet(active_emps,'Z:\Registrar\Active_Employee_report.xlsx')
+cleansheet(active_emps,'Z:\Security\Active_Employee_report.xlsx')
 
 dfcross = pd.read_excel(newest(path,"HR_REPORT_PAYROLL_ID_LIST"))
 dfpay= pd.read_excel(newest(path,"LOCKED_QUERY_1_"))
