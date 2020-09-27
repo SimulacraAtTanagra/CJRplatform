@@ -14,8 +14,9 @@ Accepts ~ at beginning of value string to denote a not operation.
 Accepts ^ at beginning of value string to denote a startswith operation
 Accepts $ at beginning of value string to denoate an endswith operation
 Accepts ! at beginning of value string to denoate a contains operation
+Above operators cannot currently be compounded. Use individually ONLY.
 string as str1 kwarg and will split on comma to filter columns.  
-note: MUST FIX str.contains statements
+
 """
 
 import pandas as pd
@@ -42,9 +43,11 @@ def str_tran(i:list) -> str:    #generates string for subsetting
                 fstring=str_constr(cols,conds)
                 strlist.append(fstring)
             elif "$" in conds[0]:
-                strlist.append(f""""{cols}.astype('str').str.contains({conds[1:]}$)",engine='python'""")
+                fstring=str_constr(cols,conds[1:]+"$")
+                strlist.append(fstring)
             elif "!" in conds[0]:
-                strlist.append(f""""{cols}.astype('str').str.contains({conds[1:]})",engine='python'""")
+                fstring=str_constr(cols,conds[1:])
+                strlist.append(fstring)
             else:
                 strlist.append(f'{cols} == "{conds}"')
         elif type(conds)==list:
@@ -63,7 +66,7 @@ def str_tran(i:list) -> str:    #generates string for subsetting
 
 def subset(df:pd.DataFrame,sublist:list)-> pd.DataFrame:    #subset dataframe
     condition=str_tran(sublist)
-    df=df.query(condition)
+    df=eval(f'df.query({condition})')
     return(df)
     
 def subsetlist(df:pd.DataFrame,subsetlist:list,**kwargs) -> pd.DataFrame: #for multiples
