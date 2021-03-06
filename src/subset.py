@@ -9,7 +9,7 @@ Created on Sat Sep 26 13:08:58 2020
 This function allows the procedural subsetting of a dataframe.
 It accepts list of lists. Each list is one or more pairs of columns and 
 values to filter by. 
-If value is Nonetype, will automatically filter where column is empty. 
+If value is Nonetype, will automatically filter out cells where column is empty. 
 Accepts ~ at beginning of value string to denote a not operation. 
 Accepts ^ at beginning of value string to denote a startswith operation
 Accepts $ at beginning of value string to denoate an endswith operation
