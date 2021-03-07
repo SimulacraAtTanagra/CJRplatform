@@ -14,7 +14,8 @@ import pandas as pd
 import re
 import datetime
 from admin import newest,colclean,rehead
-import subset
+from subset import subsetlist
+import os
   
 def isValid(s): #for phone number validation
     try:
@@ -53,19 +54,104 @@ def load_data(path,fname):
     return(df)
 
 
-def add_calc_col(df,title,col,func,subs=False):
+def add_calc_col(df,title,col,func,subs=False): #this abstracts applying a bit
     df[title]=df[col].apply(func)
     if subs:
         df=df.iloc[:,subs]
     return(df)
-def main(): #literally just doing this so I can run stuff unmolested
-    adjfile= df[df.empl_cls_ld=="Adjuncts"][['empl_id','empl_rcd','dept_id_job','labor_job_ld']]
-    adjfile.to_excel('s:\\downloads\\Adj_Records.xls')
+    
+def filesubset(df,cols,conds,filename=None,subs=None,name=None):   #procedural subsetting and writing to excel
+    if subs:
+        subs=','.join(subs)
+        df=subsetlist(df,[cols,conds],str1=subs)
+    else:
+        df=subsetlist(df,[cols,conds])
+    if name:
+        df.name=name
+    if filename:
+        df.to_excel(filename)
+    else:
+        return(df)
+def multifilesubset(df:pd.DataFrame,basename:str,filenames:list,argsl:list):      
+    for ix,file in enumerate(filenames):
+        if ":" in file:
+            filename=file
+        else:
+            filename=os.path.join(basename,file)
+        col_cond_subs=argsl[ix]
+        if type(col_cond_subs[0])==str:  #if this is a singular subset argument
+            if len(col_cond_subs)>2:   #and there's three arguments
+                filesubset(df,col_cond_subs[0],col_cond_subs[1],filename=filename)
+            else:
+                subs=','.join(col_cond_subs[2])
+                filesubset(df,col_cond_subs[0],col_cond_subs[1],filename=filename,subs=subs)
+        elif type(col_cond_subs[0])==list:
+            df1=df
+            for grouping in col_cond_subs:
+                if type(grouping[0])==str:  #if this is a singular subset argument
+                    if len(grouping)>2:   #and there's three arguments
+                        df1=filesubset(df1,grouping[0],grouping[1])
+                    else:
+                        subs=','.join(grouping[2])
+                        df1=filesubset(df1,grouping[0],grouping[1],subs=subs)
+            df1.to_excel(filename)
+        print(f"Written file {filename}")
+
+def mass_subset(df:pd.DataFrame,names:list,argsl:list):
+    #creates a list of named data frames for audit purposes
+    auditlist=[]
+    for ix,name in enumerate(names):
+        col_cond_subs=argsl[ix]
+        if type(col_cond_subs[0])==str:  #if this is a singular subset argument
+            if len(col_cond_subs)>2:   #and there's three arguments
+                df1=filesubset(df,col_cond_subs[0],col_cond_subs[1],name=name)
+            else:
+                subs=','.join(col_cond_subs[2])
+                df1=filesubset(df,col_cond_subs[0],col_cond_subs[1],subs=subs,name=name)
+        elif type(col_cond_subs[0])==list:
+            df1=df
+            for grouping in col_cond_subs:
+                if type(grouping[0])==str:  #if this is a singular subset argument
+                    if len(grouping)>2:   #and there's three arguments
+                        df1=filesubset(df1,grouping[0],grouping[1],name=name)
+                    else:
+                        subs=','.join(grouping[2])
+                        df1=filesubset(df1,grouping[0],grouping[1],subs=subs,name=name)
+        auditlist.append(df1)
+    return(auditlist)
+
+def main(path): #literally just doing this so I can run stuff unmolested
+    fname = "FULL_FILE"         # Give filename prefix
+    df=load_data(path,fname)    
+    
+    #consolidating all of my lines of spaghetti into a few well-ordered functions
+    #Adjunct Records is...
+    #PAF Report is a document with only the information reuqired to complete a Personnel Action Form
+    #Active Employee report is all active employees for Registrar and Security
+    #^Possibly deprecated client-side
+    
+    #TODO complete list of files being written to disk
+    filenames=['Adj_Records.xls','Y:\PAF_report.xlsx',
+               'Z:\Registrar\Active_Employee_report.xlsx',
+               'Z:\Security\Active_Employee_report.xlsx',
+               'Y:\Current Data\emplids.xlsx'
+               ]
+    arguments=[['empl_cls_ld',"Adjuncts",['empl_id','empl_rcd','dept_id_job','labor_job_ld']],
+     ["empl_stat_cd",["A","S","R","L"],['empl_id','person_nm','home_addr1', 'home_addr2', 'home_city','home_state','home_postal','jobcode_ld','labor_job_ld','budget_line_nbr','pos_cd']],
+     ["empl_stat_cd",["A","S","P","L"],['empl_id','last_nm','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld','comp_rt']],
+     ["empl_stat_cd",["A","S","P","L"],['empl_id','last_nm','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld','comp_rt']],
+     [],
+     [],
+     ]
+    multifilesubset(df,filenames,arguments)
     df['newname'] = df['first_nm'].str.cat(df['last_nm'], sep =" ") 
     
     #removing the Federal Workstudy Records
     df=df[df['company'] != "WSF"]
     
+    
+    
+   
     #finds not null end dates where the expired end date is before today
     expired_end_dates = df[df.exp_job_end_dt.isnull() ==False][df['exp_job_end_dt'] < datetime.datetime.now()][df['empl_stat_cd']=="A"][['empl_id','empl_rcd','person_nm','dept_descr_position','labor_job_ld','exp_job_end_dt']]
     expired_end_dates.name="expired_end_dates"  
@@ -82,6 +168,7 @@ def main(): #literally just doing this so I can run stuff unmolested
            'Custodial Assistant','IT Support Asst']
     ftexp=expired_end_dates[~expired_end_dates.labor_job_ld.isin(pttiles)]
     dl_clean('s:\\downloads\\expired_end_ft.xls',ftexp)
+    
     suspiciousleaves=df[(df.return_dt.isnull()==True)&(df.empl_stat_ld.isin(['Short Work Break', 'Leave of Absence',
            'Leave With Pay']))][['empl_id','person_nm','dept_descr_position','labor_job_ld','empl_stat_ld','return_dt']]
     expired_leaves = df[df.return_dt.isnull() ==False][df['return_dt'] < datetime.datetime.now()][['empl_id','empl_rcd','person_nm','dept_descr_position','labor_job_ld','empl_stat_ld','return_dt']]
@@ -98,6 +185,7 @@ def main(): #literally just doing this so I can run stuff unmolested
     ftleaves=expired_leaves[~expired_leaves.labor_job_ld.isin(ptleavetitles)]
     ftleaves=ftleaves.append(suspiciousleaves)
     dl_clean('s:\\downloads\\ft_leaves.xls',ftleaves)
+    
     #this is specifically for use by the automated row insertion program
     expired_end_dates.reset_index(drop=True, inplace=True)
     expired_end_dates['startdate']=pd.DatetimeIndex(expired_end_dates.exp_job_end_dt) + pd.DateOffset(1)
@@ -123,10 +211,6 @@ def main(): #literally just doing this so I can run stuff unmolested
     
     work_email = df[df.empl_stat_cd.isin(['A','S','L'])][['empl_id','empl_rcd','work_email','newname','dept_descr_position','labor_job_ld','pos_cd','empl_stat_cd']]
     work_email=add_calc_col(work_email,'global_address','newname',getemail)
-    try:
-        work_email['global_address'] = work_email['newname'].apply(getemail)
-    except: 
-        pass
     work_email.work_email =work_email.work_email.str.lower()
     work_email.global_address = work_email.global_address.str.lower()
     try:
@@ -175,16 +259,7 @@ def main(): #literally just doing this so I can run stuff unmolested
     hrisgroup = "'lolsson@york.cuny.edu';'pcaceres901@york.cuny.edu';'ajackson1@york.cuny.edu';'mwilliams@york.cuny.edu';'lwilkinson901@york.cuny.edu'"
     
     #mailthis(hrisgroup,'sayers@york.cuny.edu',expired_end_dates, 'Expired end date records (test)')
-    
-    paf_empls = df[df.empl_stat_cd.isin(['A','S','R','L'])][['empl_id','person_nm','home_addr1', 'home_addr2', 'home_city','home_state','home_postal','jobcode_ld','labor_job_ld','budget_line_nbr','pos_cd']]
-    try:
-        dl_clean('Y:\PAF_report.xlsx',paf_empls)
-    except:
-        print('PAF_report currently inaccessible.')
-    
-    active_emps = df[df.empl_stat_cd.isin(['A','S','P','L'])][['empl_id','last_nm','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld','comp_rt']]
-    dl_clean('Z:\Registrar\Active_Employee_report.xlsx',active_emps)
-    dl_clean('Z:\Security\Active_Employee_report.xlsx',active_emps)
+   
          #ethicsreport = active_emps[active_emps.comp_rt>101000]
     #cleansheet(ethicsreport,'s:\\downloads\\ethics_report.xlsx')
     
@@ -271,6 +346,7 @@ def main(): #literally just doing this so I can run stuff unmolested
     finalnonreappt.to_excel('s://downloads//canonreappts.xls')
     finalreappt=ca_nonreappt_audit[ca_nonreappt_audit.combocode.isin(finaldf.combocode.unique())]
     finalreappt.to_excel('s://downloads//careappts.xls')
+    
     #dashboard summary segment
     """
     x=[df[df.action_date > df.effdt_job][df.empl_stat_cd.isin(['A','S','R'])].shape[0],blank_email.shape[0],expired_end_dates.shape[0],active_emps.shape[0]]
@@ -355,3 +431,4 @@ if __name__=="__main__":
     path = "C:\\users\\shane\\Downloads\\"     # Give the location of the files
     fname = "FULL_FILE"         # Give filename prefix
     df=load_data(path,fname)
+    filesubset(df,'empl_cls_ld',"Adjuncts",os.path.join(path,'adjfile.xls'),subs='empl_id,empl_rcd,dept_id_job,labor_job_ld')
