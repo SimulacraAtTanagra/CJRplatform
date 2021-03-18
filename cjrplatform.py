@@ -426,6 +426,20 @@ def main(path): #literally just doing this so I can run stuff unmolested
     ca_final_list = ca_final_list.drop('empl_id2',axis=1)
     ca_final_list.to_excel("S:\\Downloads\\calist.xlsx")
     '''
+    
+    
+    
+
+#finds not null end dates where the expired end date is before today
+#expired_end_dates = df[df.exp_job_end_dt.isnull() ==False][df['exp_job_end_dt'] < datetime.now()]   
+#expired_leaves = df[df.return_dt.isnull() ==False][df['return_dt'] < datetime.now()][['empl_id','person_nm','dept_descr_position','labor_job_ld','empl_stat_ld','return_dt']]
+#df[(df.work_email.isnull() ==True) | (df[df['work_email'].str.endswith('york.cuny.edu')])]
+#df[df.work_email.isnull() ==True]
+#df.drop(df[df['work_email'].str.endswith('york.cuny.edu',na=False)],axis=1)
+
+#df = df[['empl_id','full_name','dept_descr_position','labor_job_ld','empl_stat_ld','return_dt']]
+
+
 
 if __name__=="__main__":
     path = "C:\\users\\shane\\Downloads\\"     # Give the location of the files
