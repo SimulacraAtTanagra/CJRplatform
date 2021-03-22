@@ -7,14 +7,14 @@ Created on Wed Jan 22 08:57:38 2020
 #Wow, what a mess. Let's see if we can't fix this. 
 
 
-#from emailautosend import mailthis
-from emailautosend import getemail
-from cleansheet import dl_clean
+#from src.emailautosend import mailthis
+from src.emailautosend import getemail
+from src.cleansheet import dl_clean
 import pandas as pd
 import re
 import datetime
-from admin import newest,colclean,rehead
-from subset import subsetlist
+from src.admin import newest,colclean,rehead
+from src.subset import src.subsetlist
 import os
   
 def isValid(s): #for phone number validation
