@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 22 12:17:23 2020
-
-@author: sayers
-"""
 from re import search
 import win32com.client as win32
 from tabulate import tabulate
@@ -85,7 +79,8 @@ def mailthis(recipientlist,cc, df, subject,obj):
     if obj!='':
         mail.Attachments.Add(obj)
     mail.Send()
-def mailthat(recipientlist,cc,bcc,obj,subject,text=None,html=None):
+    
+def mailthat(subject,to=None,cc=None,bcc=None,text=None,html=None,atch=None):
     
     outlook = win32.Dispatch('outlook.application')
 #    oacctouse = acc
@@ -94,9 +89,12 @@ def mailthat(recipientlist,cc,bcc,obj,subject,text=None,html=None):
 #            oacctouse = oacc
 #            break
     mail = outlook.CreateItem(0)
-    mail.To = recipientlist
-    mail.CC = cc
-    mail.BCC = bcc
+    if to:
+        mail.To = to
+    if cc:
+        mail.CC = cc
+    if bcc:
+        mail.BCC = bcc
     mail.Subject = subject
 #    mail.SendUsingAccount = acc
     mail.ReadReceiptRequested = True
@@ -139,5 +137,6 @@ def mailthat(recipientlist,cc,bcc,obj,subject,text=None,html=None):
     mail.Body = text
     mail.HTMLBody = html
     #To attach a file to the email (optional):
-    mail.Attachments.Add(obj)
+    if atch:
+        mail.Attachments.Add(atch)
     mail.Send()
