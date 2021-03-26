@@ -7,14 +7,14 @@ Created on Wed Jan 22 08:57:38 2020
 #Wow, what a mess. Let's see if we can't fix this. 
 
 
-#from src.emailautosend import mailthis
-from src.emailautosend import getemail
-from src.cleansheet import dl_clean
+#from emailautosend import mailthis
+from emailautosend import getemail
+from cleansheet import dl_clean, quickopen
 import pandas as pd
 import re
 import datetime
-from src.admin import newest,colclean,rehead
-from src.subset import src.subsetlist
+from admin import newest,colclean,rehead
+from subset import subsetlist
 import os
   
 def isValid(s): #for phone number validation
@@ -50,7 +50,11 @@ def load_data(path,fname):
     #getting the newest of these files in the directory and converting to df
     #stripping out the 2 metadata columns in CJR files
     #standardizing the column names
-    df = colclean(rehead(pd.read_excel(newest(path,fname)),2))
+    try:
+        df = colclean(rehead(pd.read_excel(newest(path,fname)),2))
+    except:
+        quickopen(newest(path,fname))
+        df = colclean(rehead(pd.read_excel(newest(path,fname)),2))
     return(df)
 
 
@@ -72,7 +76,9 @@ def filesubset(df,cols,conds,filename=None,subs=None,name=None):   #procedural s
         df.to_excel(filename)
     else:
         return(df)
+        
 def multifilesubset(df:pd.DataFrame,basename:str,filenames:list,argsl:list):      
+    #for doing subset operations multiple times procedurally.
     for ix,file in enumerate(filenames):
         if ":" in file:
             filename=file
@@ -148,9 +154,7 @@ def main(path): #literally just doing this so I can run stuff unmolested
     
     #removing the Federal Workstudy Records
     df=df[df['company'] != "WSF"]
-    
-    
-    
+
    
     #finds not null end dates where the expired end date is before today
     expired_end_dates = df[df.exp_job_end_dt.isnull() ==False][df['exp_job_end_dt'] < datetime.datetime.now()][df['empl_stat_cd']=="A"][['empl_id','empl_rcd','person_nm','dept_descr_position','labor_job_ld','exp_job_end_dt']]
@@ -445,4 +449,4 @@ if __name__=="__main__":
     path = "C:\\users\\shane\\Downloads\\"     # Give the location of the files
     fname = "FULL_FILE"         # Give filename prefix
     df=load_data(path,fname)
-    filesubset(df,'empl_cls_ld',"Adjuncts",os.path.join(path,'adjfile.xls'),subs='empl_id,empl_rcd,dept_id_job,labor_job_ld')
+    x=filesubset(df,'empl_cls_ld',"Adjuncts",os.path.join(path,'adjfile.xls'),subs='empl_id,empl_rcd,dept_id_job,labor_job_ld')
