@@ -137,10 +137,10 @@ def main(path): #literally just doing this so I can run stuff unmolested
     #^Possibly deprecated client-side
     
     #TODO complete list of files being written to disk
-    filenames=['Adj_Records.xls','Y:\PAF_report.xlsx',
+    filenames=['s:\downlaods\Adj_Records.xls','Y:\Reports\PAF_report.xlsx',
                'Z:\Registrar\Active_Employee_report.xlsx',
                'Z:\Security\Active_Employee_report.xlsx',
-               'Y:\Current Data\emplids.xlsx'
+               'Y:\Reports\emplids.xlsx'
                ]
     arguments=[['empl_cls_ld',"Adjuncts",['empl_id','empl_rcd','dept_id_job','labor_job_ld']],
      ["empl_stat_cd",["A","S","R","L"],['empl_id','person_nm','home_addr1', 'home_addr2', 'home_city','home_state','home_postal','jobcode_ld','labor_job_ld','budget_line_nbr','pos_cd']],
@@ -151,7 +151,6 @@ def main(path): #literally just doing this so I can run stuff unmolested
      ]
     multifilesubset(df,filenames,arguments)
     df['newname'] = df['first_nm'].str.cat(df['last_nm'], sep =" ") 
-    
     #removing the Federal Workstudy Records
     df=df[df['company'] != "WSF"]
 
@@ -259,8 +258,6 @@ def main(path): #literally just doing this so I can run stuff unmolested
     
     #df[(df['Last_Name']=='AYERS') & (df['First_Name']=='SHANE ')].Ending.values[0]
     #df.loc[(df['Last_Name']=="DAVIS" & df['First_Name']=='ALISHA '),'First_Name']
-    
-    hrisgroup = "'lolsson@york.cuny.edu';'pcaceres901@york.cuny.edu';'ajackson1@york.cuny.edu';'mwilliams@york.cuny.edu';'lwilkinson901@york.cuny.edu'"
     
     #mailthis(hrisgroup,'sayers@york.cuny.edu',expired_end_dates, 'Expired end date records (test)')
    
