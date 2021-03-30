@@ -126,7 +126,7 @@ def mass_subset(df:pd.DataFrame,names:list,argsl:list):
         auditlist.append(df1)
     return(auditlist)
 
-def main(path): #literally just doing this so I can run stuff unmolested
+def dfsplit(path): #literally just doing this so I can run stuff unmolested
     fname = "FULL_FILE"         # Give filename prefix
     df=load_data(path,fname)    
     
@@ -146,10 +146,12 @@ def main(path): #literally just doing this so I can run stuff unmolested
      ["empl_stat_cd",["A","S","R","L"],['empl_id','person_nm','home_addr1', 'home_addr2', 'home_city','home_state','home_postal','jobcode_ld','labor_job_ld','budget_line_nbr','pos_cd']],
      ["empl_stat_cd",["A","S","P","L"],['empl_id','last_nm','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld','comp_rt']],
      ["empl_stat_cd",["A","S","P","L"],['empl_id','last_nm','person_nm','jobcode_ld','labor_job_ld','dept_descr_job','comp_freq_job_ld','comp_rt']],
-     [],
-     [],
+     ["empl_stat_cd",["A","S","P","L","T","R"],['empl_id','person_nm']]
      ]
     multifilesubset(df,filenames,arguments)
+    return(df)
+def main(path):
+    df=dfsplit(path)
     df['newname'] = df['first_nm'].str.cat(df['last_nm'], sep =" ") 
     #removing the Federal Workstudy Records
     df=df[df['company'] != "WSF"]
