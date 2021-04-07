@@ -1,5 +1,6 @@
-pywin32==228
-matplotlib==3.0.2
 pandas==0.24.0
-tabulate==0.8.7
-xlwings==0.20.7
+pywin32==228
+fuzzywuzzy==0.18.0
+pycryptodome==3.10.1
+tabulate==0.8.9
+xlwings==0.23.0
